@@ -1,0 +1,87 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:inventorydb;MODE=MySQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+  h2:
+    console:
+      enabled: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+
+resilience4j:
+  retry:
+    instances:
+      shopify:
+        maxAttempts: 3
+        waitDuration: 2s
+        retryExceptions:
+          - org.springframework.web.client.RestClientException
+          - java.io.IOException
+      amazon:
+        maxAttempts: 3
+        waitDuration: 2s
+        retryExceptions:
+          - org.springframework.web.client.RestClientException
+          - java.io.IOException
+      flipkart:
+        maxAttempts: 3
+        waitDuration: 2s
+        retryExceptions:
+          - org.springframework.web.client.RestClientException
+          - java.io.IOException
+  ratelimiter:
+    instances:
+      shopify:
+        limitForPeriod: 4
+        limitRefreshPeriod: 1s
+        timeoutDuration: 0s
+      amazon:
+        limitForPeriod: 2
+        limitRefreshPeriod: 1s
+        timeoutDuration: 0s
+      flipkart:
+        limitForPeriod: 2
+        limitRefreshPeriod: 1s
+        timeoutDuration: 0s
+
+app:
+  scheduler:
+    order-poll-delay-ms: 300000
+    retry-delay-ms: 600000
+  channels:
+    shopify:
+      enabled: false
+      shop: ${SHOPIFY_SHOP:}
+      access-token: ${SHOPIFY_ACCESS_TOKEN:}
+      api-version: "2024-10"
+      location-id: ${SHOPIFY_LOCATION_ID:}
+      orders-status: open
+    amazon:
+      enabled: false
+      base-url: ${AMAZON_SPAPI_BASE_URL:https://sellingpartnerapi-na.amazon.com}
+      access-token: ${AMAZON_ACCESS_TOKEN:}
+      orders-path: ${AMAZON_ORDERS_PATH:/orders/v0/orders}
+      inventory-path: ${AMAZON_INVENTORY_PATH:/fba/inventory/v1/summaries}
+      # Production: use AWS SigV4 + LWA; this client sends Authorization: Bearer when access-token is set.
+    flipkart:
+      enabled: false
+      base-url: ${FLIPKART_API_BASE_URL:https://api.flipkart.net}
+      access-token: ${FLIPKART_ACCESS_TOKEN:}
+      orders-path: ${FLIPKART_ORDERS_PATH:/v3/shipments/orders}
+      inventory-path: ${FLIPKART_INVENTORY_PATH:/v3/listings/inventory}
