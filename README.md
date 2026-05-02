@@ -11,6 +11,18 @@ Modular monolith for central inventory, channel listings, order ingestion, reser
 - `RestClient` for outbound calls (Shopify Admin REST patterns; Amazon/Flipkart configurable)
 - React Native + Expo (TypeScript, expo-router) in `mobile/`
 
+## Backend functionality
+
+- Central inventory model with products, SKUs, inventory rows, reservations, listings, and orders
+- Order ingestion and idempotent persistence from channels or manual order creation
+- Inventory reservation with pessimistic locking and sellable quantity calculation
+- Channel adapter registry for Shopify, Amazon, and Flipkart integrations
+- Per-channel order polling and adapter status discovery
+- Async inventory sync events to push stock updates to enabled channel listings
+- Administrative sync orchestration and reconciliation hooks
+- Health check and actuator support via `GET /actuator/health`
+- CORS enabled for `/api/**` and `/actuator/**` to support the mobile/web client
+
 ## Run locally
 
 ```bash
