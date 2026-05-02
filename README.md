@@ -1,4 +1,4 @@
-# Multi-channel inventory management (Spring Boot)
+# Multi-channel inventory management (Spring Boot + Expo)
 
 Modular monolith for central inventory, channel listings, order ingestion, reservations, and outbound sync to marketplaces. The database is the source of truth; channel adapters isolate external APIs.
 
@@ -9,11 +9,12 @@ Modular monolith for central inventory, channel listings, order ingestion, reser
 - **Flyway** for versioned schema (`src/main/resources/db/migration`)
 - **Resilience4j** for per-channel HTTP retry and rate limiting
 - `RestClient` for outbound calls (Shopify Admin REST patterns; Amazon/Flipkart configurable)
+- React Native + Expo (TypeScript, expo-router) in `mobile/`
 
 ## Run locally
 
 ```bash
-cd InventoryManagement
+cd Inventory-Manager
 mvn spring-boot:run
 ```
 
@@ -21,14 +22,83 @@ Defaults: H2 + Flyway apply migrations on startup. JPA `ddl-auto` is `validate` 
 
 Health: `GET http://localhost:8080/actuator/health`
 
+## Mobile app (Expo)
+
+The repository now includes a React Native frontend under `mobile/` that talks to the same backend APIs.
+
+### Mobile features
+
+- Dashboard: backend health, per-channel status, per-channel/all-channel order polling, and reconcile action
+- Inventory lookup: fetch stock by SKU
+- Reserve stock: submit `POST /api/inventory/reserve`
+- Order creation: submit `POST /api/orders` with line items
+- Configurable API base URL saved in local storage
+
+### Run mobile app
+
+```bash
+cd mobile
+npm install
+npm start
+```
+
+Then press:
+
+- `w` for web
+- `a` for Android emulator
+- or scan the QR code in Expo Go on your phone
+
+### API base URL tips
+
+- Desktop browser / iOS simulator: `http://localhost:8080`
+- Android emulator: `http://10.0.2.2:8080`
+- Physical device: `http://<your-lan-ip>:8080` (same Wi-Fi network)
+
+You can set the base URL in the Home tab. `EXPO_PUBLIC_API_URL` is also supported for defaults.
+
 ## API (examples)
 
 - `GET /api/inventory/sku/{skuId}`
 - `POST /api/inventory/reserve` — body `{ "skuId": 1, "quantity": 2 }`
 - `POST /api/orders` — body matches `OrderRequest` (external id, `channelId`, items with `skuId`)
 - `GET /api/channels` — registered adapter names
+- `GET /api/channels/status` — channel rows + adapter/config status
+- `POST /api/channels/{channelName}/poll-orders` — poll one channel and return fetched count/result
+- `POST /api/channels/poll-orders` — poll all channels and return per-channel results
 - `POST /api/admin/poll-orders` — trigger order pull for all enabled channel configs
 - `POST /api/admin/reconcile` — placeholder reconciliation hook
+
+## Demo flow
+
+Use this flow to verify end-to-end behavior:
+
+1. Start backend:
+
+```bash
+mvn spring-boot:run
+```
+
+2. Start mobile app:
+
+```bash
+cd mobile
+npm start
+```
+
+3. In Home tab:
+   - Set API URL (`localhost`, `10.0.2.2`, or LAN IP depending on device)
+   - Confirm health = `UP`
+   - Reload channels and verify each channel's `enabled/configured` status
+
+4. Pull channel orders:
+   - Use **Poll this channel** for targeted sync, or
+   - Use **Poll all channels** for full sync
+   - Inspect per-channel results (`SUCCESS/FAILED`, fetched order count)
+
+5. Verify inventory + reservation flow:
+   - Create an order in the Orders tab (uses `POST /api/orders`)
+   - Check stock for a SKU in the Stock tab
+   - Reserve additional stock in Reserve tab, then re-check stock
 
 ## Configuration
 
@@ -55,6 +125,10 @@ Environment variables are supported in `application.yml` (e.g. `SHOPIFY_SHOP`, `
 ### Resilience (`resilience4j.*`)
 
 Retry and rate limiters are registered per channel key: `shopify`, `amazon`, `flipkart`. Tune `maxAttempts`, `waitDuration`, and `limitForPeriod` in `application.yml`.
+
+### CORS
+
+`WebConfig` registers CORS for `/api/**` and `/actuator/**` so Expo web and browser-based clients can call the backend during development.
 
 ## Schema
 

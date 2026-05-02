@@ -4,6 +4,7 @@ com\example\inventory\controller\InventoryController.class
 com\example\inventory\controller\OrderController.class
 com\example\inventory\scheduler\InventorySyncScheduler.class
 com\example\inventory\dto\request\ReserveStockRequest.class
+com\example\inventory\dto\response\ChannelStatusResponse.class
 com\example\inventory\config\PersistenceConfig.class
 com\example\inventory\lock\InMemoryDistributedLockService.class
 com\example\inventory\integration\config\ChannelIntegrationProperties$Flipkart.class
@@ -51,6 +52,7 @@ com\example\inventory\service\inventory\ReservationService.class
 com\example\inventory\scheduler\OrderPollingScheduler.class
 com\example\inventory\lock\DistributedLockService.class
 com\example\inventory\domain\channel\ChannelListing.class
+com\example\inventory\dto\response\ChannelPollResultResponse.class
 com\example\inventory\config\AsyncConfig.class
 com\example\inventory\config\WebClientConfig.class
 com\example\inventory\domain\inventory\ReservationStatus.class
@@ -67,4 +69,5 @@ com\example\inventory\integration\config\ChannelIntegrationProperties$Amazon.cla
 com\example\inventory\exception\OutOfStockException.class
 com\example\inventory\config\SchedulerConfig.class
 com\example\inventory\service\order\OrderProcessingService.class
+com\example\inventory\config\WebConfig.class
 com\example\inventory\repository\ReservationRepository.class

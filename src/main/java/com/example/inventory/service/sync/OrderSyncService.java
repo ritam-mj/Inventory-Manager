@@ -14,8 +14,9 @@ public class OrderSyncService {
         this.orderProcessingService = orderProcessingService;
     }
 
-    public void pull(ChannelAdapter adapter, Long channelId) {
-        for (var snapshot : adapter.fetchOrders()) {
+    public int pull(ChannelAdapter adapter, Long channelId) {
+        var snapshots = adapter.fetchOrders();
+        for (var snapshot : snapshots) {
             OrderRequest normalized = new OrderRequest(
                     snapshot.externalOrderId(),
                     channelId,
@@ -23,5 +24,6 @@ public class OrderSyncService {
                     snapshot.items());
             orderProcessingService.processIncomingOrder(normalized);
         }
+        return snapshots.size();
     }
 }
